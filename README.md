@@ -1,99 +1,109 @@
-# 人民币汇率中间价查询工具（GUI）
+# ExchangeRate-Viewer
 
-本工具基于 Python 开发，提供图形化界面，可从中国人民银行官网获取 **人民币汇率中间价公告**，支持指定日期查询，并一键导出到 Excel 文件。所有汇率均统一为 **1 人民币 = X 外币**，保留 6 位小数。
+**A tiny Tkinter app that shows the RMB central parity rate for any date, and exports it to Excel.**
 
----
+It fetches the daily 人民币汇率中间价 announcement, parses the rates out of it, normalises every one of them to **1 CNY = X foreign currency**, shows them in a table, and writes the result to a `.xlsx` on your desktop.
 
-## 功能特性
-
-- 📅 **选择日期**：输入 `YYYY-MM-DD` 格式日期，或一键获取最新公告。
-- 🔍 **自动解析**：智能提取公告中的汇率数据，自动转换“1外币对人民币”为“1人民币=X外币”。
-- 📊 **表格展示**：以清晰表格显示所有货币及对应汇率。
-- 📁 **导出 Excel**：一键导出到桌面，生成 `人民币汇率_YYYY-MM-DD.xlsx`，第一列“币种”，第二列“汇率”。
-- 🧹 **清空重置**：一键清空当前显示的数据。
-- 🛡️ **容错处理**：自动检测网络异常、公告列表为空等情况，并提供友好提示。
+**English** · [中文](README.zh-CN.md)
 
 ---
 
-## 安装与运行
+## Where the data actually comes from
 
-### 1. 环境要求
-- Python 3.7 及以上版本
-- 确保网络可访问中国人民银行官网
+The announcement is published on the People's Bank of China website, but its real title is *"China Foreign Exchange Trade System announces the RMB central parity rate under authorisation"* — so the numbers are published by **CFETS**, under PBOC authorisation, with the PBOC site acting as the carrier.
 
-### 2. 安装依赖库
-在终端（命令行）中执行：
+**This tool is not an official channel.** It is a convenience wrapper that scrapes a public web page, does the arithmetic, and lays it out in a table. When the number matters, check the official announcement.
+
+---
+
+## Features
+
+- **Any date** — type `YYYY-MM-DD`, or hit *Latest* for the most recent announcement.
+- **Automatic conversion** — the announcement quotes `1 USD = 7.1234 CNY`; the table shows `1 CNY = 0.140382 USD`.
+- **Six decimals**, consistently, on screen and in the export.
+- **Excel export** — one click, saved to the desktop as `人民币汇率_YYYY-MM-DD.xlsx`, with 币种 and 汇率 columns.
+- **Clear** — wipe the table without restarting.
+
+---
+
+## Requirements
+
+- **Python 3.7+**
+- `requests`, `pandas`, `openpyxl`
+- Network access to `pbc.gov.cn`
+
 ```bash
-pip install requests pandas openpyxl
-```
-- `requests`：发送 HTTP 请求获取网页内容
-- `pandas`：处理数据并导出 Excel
-- `openpyxl`：支持 `.xlsx` 格式的 Excel 写入
-
-### 3. 运行程序
-将源代码保存为 `pboc_gui.py`，然后在终端中执行：
-```bash
+git clone https://github.com/MCNYY117/ExchangeRate-Viewer.git
+cd ExchangeRate-Viewer
+pip install -r requirements.txt
 python pboc_gui.py
 ```
 
 ---
 
-## 界面与操作指南
+## Using it
 
+The window opens and immediately tries to load the announcement list and the latest rates.
 
-### 操作步骤
-1. **启动程序**：自动加载最新公告列表，并显示最新汇率。
-2. **刷新公告列表**：如果列表为空或想更新，点击 **“刷新公告列表”**。
-3. **查看指定日期**：
-   - 在日期输入框中输入 `YYYY-MM-DD`（例如 `2026-07-03`）。
-   - 点击 **“查询该日汇率”** 即可。
-4. **获取最新**：点击 **“获取最新”** 直接查看当天汇率。
-5. **导出 Excel**：数据加载后，点击 **“导出到桌面 Excel”**，文件将自动保存到桌面。
-6. **清空**：点击 **“清空显示”** 清除表格内容。
+| Button | What it does |
+|---|---|
+| **刷新公告列表** — Refresh list | Re-fetches the list of available announcements. Use this if the date range shows "请点击刷新". |
+| **获取最新** — Latest | Shows the most recent announcement. |
+| **查询该日汇率** — Look up date | Shows the announcement for the date you typed. |
+| **导出到桌面 Excel** — Export | Writes the current table to an `.xlsx` on your desktop. |
+| **清空显示** — Clear | Empties the table. |
 
----
-
-## 数据格式说明
-
-- **汇率统一为**：`1 人民币 = X 外币`。
-- **保留 6 位小数**：显示与导出均保留 6 位小数（如 `7.075900`）。
-- **货币顺序**：按货币名称的字母/拼音顺序排列（中文排序）。
-
-### 示例输出（Excel）
-| 币种 | 汇率     |
-| ---- | -------- |
-| 美元 | 0.147001 |
-| 欧元 | 0.128836 |
-| 日元 | 18.9751  |
-| ...  | ...      |
+The date must be one that was actually loaded into the list; typing a date outside it returns an error rather than searching again.
 
 ---
 
-## 常见问题与故障排除
+## Output format
 
-| 问题现象                       | 可能原因                             | 解决办法                                      |
-| ------------------------------ | ------------------------------------ | --------------------------------------------- |
-| 启动后日期范围显示“请点击刷新” | 首次加载公告列表失败                 | 点击 **“刷新公告列表”** 重试，确保网络畅通    |
-| 查询时报“没有 XX 的公告数据”   | 该日期无公告，或日期格式错误         | 检查日期格式，或从可用范围中选择              |
-| 导出失败                       | 桌面无写入权限，或 `openpyxl` 未安装 | 检查桌面目录权限，执行 `pip install openpyxl` |
-| 汇率显示为空                   | 公告页面结构变化                     | 可尝试稍后重试，或反馈给开发者调整解析规则    |
+Every rate is **1 CNY = X units of the foreign currency**, to six decimals.
 
----
-
-## 注意事项
-
-- 本工具仅用于学习和个人参考，数据来源于中国人民银行官网，请勿用于商业用途。
-- 公告数据可能延迟发布，请以官网最新公告为准。
-- 若长时间无法获取数据，请手动访问 [中国人民银行官网公告页](https://www.pbc.gov.cn/zhengcehuobisi/125207/125217/125925/index.html) 确认网站是否正常。
+| 币种 (currency) | 汇率 (rate) |
+|---|---|
+| 美元 | 0.140382 |
+| 欧元 | 0.132117 |
+| 港元 | 1.096200 |
 
 ---
 
-## 开发与贡献
+## Known limitations
 
-本工具采用 **Tkinter** 构建界面，解析逻辑基于正则表达式。如您发现解析异常或希望增加新功能，欢迎提交 Issue 或 Pull Request。
+These are real, current behaviours — not hypotheticals:
+
+- **It scrapes HTML.** There is no official API. Parsing is regex over the page's markup and Chinese wording, so a redesign, a class rename or an anti-bot change breaks it **silently** — you get an empty list or an empty table rather than an error.
+- **Currencies quoted per 100 units are skipped.** The parser matches the form `1 <currency> 对人民币 <rate> 元`. The announcement writes yen and won as `100日元对人民币…元`, which has no leading `1`, so **JPY and KRW never appear** in the table.
+- **The window can freeze.** Fetching happens on the Tk main thread, with a 15-second timeout per request; start-up can issue three requests, so a slow network means roughly **45 seconds of an unresponsive window**. It is not hung — wait it out.
+- **No caching.** Every button press re-fetches.
 
 ---
 
-## 许可
+## Troubleshooting
 
-MIT License
+| Symptom | Likely cause | What to do |
+|---|---|---|
+| Date range says "请点击刷新" on start | The first list fetch failed | Hit **刷新公告列表**; check your network |
+| "没有 XX 的公告数据" | No announcement that day, or a malformed date | Check the date format, or pick from the loaded range |
+| Export fails | No write permission on the desktop, or `openpyxl` missing | Check permissions; `pip install openpyxl` |
+| The table is empty | The page structure changed | See *Known limitations* — the parser needs updating |
+| No yen or won | The per-100-unit issue described above | Not supported yet; the fix is in `_parse_and_convert` |
+
+---
+
+## Notes
+
+- The data is a public government announcement. It can be published late; the official page is authoritative.
+- If fetching fails repeatedly, open the [PBOC announcement page](https://www.pbc.gov.cn/zhengcehuobisi/125207/125217/125925/index.html) yourself to check the site is up.
+- **The code is MIT licensed** — use and modify it freely. The "check the official source" advice above is about the *data*, not the licence.
+
+---
+
+## Contributing
+
+The UI is Tkinter; the parsing is regex. Parsing bugs and feature requests are welcome as issues or pull requests.
+
+## License
+
+[MIT](LICENSE)

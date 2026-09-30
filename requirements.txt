@@ -1,0 +1,4 @@
+# Three, and one of them only for the Excel export.
+requests>=2.25
+pandas>=1.2
+openpyxl>=3.0
